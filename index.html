@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blockbuster App</title>
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+ 
+</head>
+
+<body>
+    <div data-role="page" id="splash">
+        <div class="ui-content splash" style="margin-left:30%;">
+            <img src="img/splash.png" style="min-width: 300px; height: 300px; margin: 0 auto; position:fixed;top:50%;left:50%;margin-top:-200px;margin-left:-150px;" alt="startup image" />
+        </div>
+    </div>
+    
+    <script>
+    $(document).on('pageinit', '#splash', function() { // the .on() method does require jQuery 1.7 + but this will allow you to have the contained code only run when the #splash page is initialized.
+        setTimeout(function() {
+            window.location.replace("app.html");
+        }, 1000);
+    });
+</script>
+</body>
+
+</html>
+

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Blockbuster App</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/highcharts-more.js"></script>
+  <style>
+    .ui-bar-a {
+      color: white;
+      background-color: black;
+    }
+    
+    .ui-body-a {
+      background-color: white;
+    }
+    
+    .ui-page-theme-a {
+      background-color: white;
+    }
+    
+    .ui-btn-c {
+      min-width: 10%;
+      background-color: #7ddc1f !important;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div data-role="page" data-theme="a" id="pageone">
+    <div data-role="header" data-theme="a">
+      <h1>Blockbuster App</h1>
+      <div data-role="navbar">
+        <ul>
+          <li><a href="#pageone" data-icon="search" class="ui-btn-active  ui-state-persist">Filter</a></li>
+          <li><a href="#pagetwo" class="vizlink" style="background-color:#dfe3ee;" data-icon="eye">Visualizations</a></li>
+          <li><a href="#pagethree" class="listlink" style="background-color:#dfe3ee;" data-icon="bars">List</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div data-role="main" class="ui-content ui-body-a">
+      <form method="post">
+        <fieldset class="ui-field-contain">
+          <label for="year">Year</label>
+          <select name="year" id="year">
+          </select>
+        </fieldset>
+        <fieldset class="ui-field-contain">
+          <label for="genre">Genre</label>
+          <select name="genre" id="genre">
+          </select>
+        </fieldset>
+        <fieldset class="ui-field-contain">
+          <label for="rating">MPAA Rating</label>
+          <select name="rating" id="rating">
+          </select>
+        </fieldset>
+        <fieldset class="ui-field-contain">
+          <label for="studio">Studio</label>
+          <select name="studio" id="studio">
+          </select>
+        </fieldset>
+        <a href="" style="margin-left:45%;" class="ui-btn ui-btn-inline ui-btn-c" id="submitGetData">Submit</a>
+      </form>
+    </div>
+    <div id="dataDiv"></div>
+    <div data-role="footer">
+
+    </div>
+  </div>
+
+  <div data-role="page" data-theme="a" id="pagetwo">
+    <div data-role="header" data-theme="a">
+      <h1>Blockbuster App</h1>
+      <div data-role="navbar">
+        <ul>
+          <li><a href="#pageone" style="background-color:#dfe3ee;" data-icon="search">Filter</a></li>
+          <li><a href="#pagetwo" data-icon="eye" class="ui-btn-active  ui-state-persist vizlink">Visualizations</a></li>
+          <li><a href="#pagethree" style="background-color:#dfe3ee;" class="listlink" data-icon="bars">List</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div data-role="main" class="ui-content ui-body-a">
+
+      <div id="errorViz"></div>
+
+      <div id="lineChart" style="min-width: 100%; height: 400px; margin: 0 auto"></div>
+
+      <div id="pieChart" style="min-width: 100%; height: 400px; margin: 0 auto"></div>
+
+      <div id="barChart" style="min-width: 100%; height: 400px; margin: 0 auto"></div>
+
+
+
+    </div>
+
+    <div data-role="footer">
+
+    </div>
+  </div>
+
+
+
+  <div data-role="page" data-theme="a" id="pagethree">
+    <div data-role="header" data-theme="a">
+      <h1>Blockbuster App</h1>
+      <div data-role="navbar">
+        <ul>
+          <li><a href="#pageone" style="background-color:#dfe3ee;" data-icon="search">Filter</a></li>
+          <li><a href="#pagetwo" style="background-color:#dfe3ee;" class="vizlink" data-icon="eye">Visualizations</a></li>
+          <li><a href="#pagethree" data-icon="bars" class="ui-btn-active  ui-state-persist listlink">List</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div data-role="main" id="listContent" class="ui-content ui-body-a">
+
+
+      <div id="errorList"></div>
+    </div>
+
+    <div data-role="footer">
+
+    </div>
+  </div>
+
+  <div id="loadingDiv"><img src="img/ring.gif" style="min-width: 300px; height: 300px; margin: 0 auto; position:fixed;top:50%;left:50%;margin-top:-200px;margin-left:-150px;" alt="startup image" /></div>
+
+  <script>
+    $(document).ready(function() {
+
+      var $loading = $('#loadingDiv').hide();
+      $(document)
+        .ajaxStart(function() {
+          $loading.show();
+        })
+        .ajaxStop(function() {
+          $loading.hide();
+        });
+
+      var sDataApiEndpoint = "https://www.googleapis.com/fusiontables/v2/query?";
+      var sApiKey = "AIzaSyAxyRJP-EXayqTWxpMgc6K_AMP0onE0zos";
+
+      var sYearSqlStatement = "SELECT year FROM 1Rtsr3xyVy2oUE3BLDG0UQdzYpuGbV07j6wbAG13G group by year";
+      var strYearUrl = encodeURI(sDataApiEndpoint + "sql=" + sYearSqlStatement + "&key=" + sApiKey);
+
+      $.get(strYearUrl, function(data) {
+        var yearArray = data.rows;
+        yearArray.unshift('1975-2015');
+        $.each(yearArray, function(i, year) {
+          $("#year").append("<option value=" + year + ">" + year + "</option>");
+        });
+      });
+
+      var sGenreSqlStatement = "SELECT Genre_1 FROM 1Rtsr3xyVy2oUE3BLDG0UQdzYpuGbV07j6wbAG13G group by Genre_1";
+      var strGenreUrl = encodeURI(sDataApiEndpoint + "sql=" + sGenreSqlStatement + "&key=" + sApiKey);
+
+      $.get(strGenreUrl, function(data) {
+        var genreArray = data.rows;
+        genreArray.unshift("All");
+        $.each(genreArray, function(i, genre) {
+          $("#genre").append("<option value=" + genre + ">" + genre + "</option>");
+        });
+      });
+
+      var sRatingSqlStatement = "SELECT rating FROM 1Rtsr3xyVy2oUE3BLDG0UQdzYpuGbV07j6wbAG13G group by rating";
+      var strRatingUrl = encodeURI(sDataApiEndpoint + "sql=" + sRatingSqlStatement + "&key=" + sApiKey);
+
+      $.get(strRatingUrl, function(data) {
+        var ratingArray = data.rows;
+        ratingArray.unshift("All");
+        $.each(ratingArray, function(i, rating) {
+          $("#rating").append("<option value=" + rating + ">" + rating + "</option>");
+        });
+      });
+
+      var sStudioSqlStatement = "SELECT studio FROM 1Rtsr3xyVy2oUE3BLDG0UQdzYpuGbV07j6wbAG13G group by studio";
+      var strStudioUrl = encodeURI(sDataApiEndpoint + "sql=" + sStudioSqlStatement + "&key=" + sApiKey);
+
+      $.get(strStudioUrl, function(data) {
+        var studioArray = data.rows;
+        studioArray.unshift("All");
+        $.each(studioArray, function(i, studio) {
+          $("#studio").append("<option value=" + studio + ">" + studio + "</option>");
+
+
+        });
+
+
+
+      });
+
+
+
+      $("#submitGetData").click(function() {
+        IMDB_Rating = [];
+        Gross = [];
+        Title = [];
+        Rt_score = [];
+        fetchBlockbustersData();
+
+        window.location.replace("#pagetwo");
+
+      });
+
+      $('.vizlink').click(function() {
+
+        IMDB_Rating = [];
+        Gross = [];
+        Title = [];
+        Rt_score = [];
+        fetchBlockbustersData();
+      });
+
+      $('.listlink').click(function() {
+        console.log("sf");
+        IMDB_Rating = [];
+        Gross = [];
+        Title = [];
+        Rt_score = [];
+        fetchBlockbustersData();
+      });
+
+
+      // fetchBlockbustersData();
+      //visualization();
+    });
+
+    function fetchBlockbustersData() {
+      var sDataApiEndpoint = "https://www.googleapis.com/fusiontables/v2/query?";
+      var sApiKey = "AIzaSyAxyRJP-EXayqTWxpMgc6K_AMP0onE0zos";
+
+      sYear = $("#year").val();
+      console.log(sYear);
+      var sGenre_1 = $("#genre").val();
+      var sRating = $("#rating").val();
+      //var sStudio = $("#studio").val();
+      var sStudio = $("#studio option:selected").text();
+      console.log(sStudio);
+
+
+
+      var sBlockbusterSqlStatement = "SELECT * FROM 1Rtsr3xyVy2oUE3BLDG0UQdzYpuGbV07j6wbAG13G";
+
+      var sWhere = " where ";
+      var iWhrFlg = 0;
+      if (sYear != '1975-2015') {
+        if (iWhrFlg == 1)
+          sWhere += " and ";
+        sWhere += " year = " + sYear;
+        iWhrFlg = 1;
+      }
+      if (sGenre_1 != "All") {
+        if (iWhrFlg == 1)
+          sWhere += " and ";
+        sWhere += " Genre_1 = '" + sGenre_1 + "'";
+        iWhrFlg = 1;
+      }
+      if (sRating != "All") {
+        if (iWhrFlg == 1)
+          sWhere += " and ";
+        sWhere += " rating = '" + sRating + "'";
+        iWhrFlg = 1;
+      }
+      if (sStudio != "All") {
+        if (iWhrFlg == 1)
+          sWhere += " and ";
+        sWhere += " studio = '" + sStudio + "'";
+        iWhrFlg = 1;
+      }
+      if (sYear != '1975-2015' || sGenre_1 != "All" || sRating != "All" || sStudio != "All")
+        sBlockbusterSqlStatement += sWhere;
+
+      var strBlockbusterUrl = encodeURI(sDataApiEndpoint + "sql=" + sBlockbusterSqlStatement + "&key=" + sApiKey);
+      console.log(strBlockbusterUrl);
+      var jqxhr = $.get(strBlockbusterUrl)
+        .done(function(data) {
+
+          displayData(data);
+        });
+    }
+
+    function displayData(data) {
+      console.log(data.rows);
+      if (data.rows != undefined) {
+        var arrRecords = data.rows;
+
+        var page_two_data = " ";
+        var strHtml = "";
+        lineChartData = [];
+        pieChartData = [];
+        // $.each(arrRecords, function(i, entry) {
+        for (i = 0; i < arrRecords.length; i++) {
+          strHtml += arrRecords[i][17] + "<br>";
+          Title.push(arrRecords[i][17]);
+          IMDB_Rating.push(parseFloat(arrRecords[i][11]));
+          Gross.push(parseFloat(arrRecords[i][6]));
+          Rt_score.push(parseFloat(arrRecords[i][4]));
+
+
+
+          page_two_data += ' <li>' +
+            '<img src=' + arrRecords[i][1] + '>' +
+            '<h2>' + arrRecords[i][17] + '</h2>' +
+            '<p>' + arrRecords[i][16] + '</p>' +
+            '</li>';
+          lineChartData.push({
+            y: arrRecords[i][6],
+            name: arrRecords[i][17]
+          });
+          pieChartData.push({
+            name: arrRecords[i][17],
+            y: arrRecords[i][6]
+          });
+        }
+        // });
+
+        $('#listContentID').remove();
+        $("#listContent").append('<ul id="listContentID" data-role="listview" data-inset="true">' + page_two_data + '</ul>');
+
+        $('#listContent').trigger('create');
+
+        $("#errorList").html('');
+        $("#errorViz").html('');
+
+
+        visualization();
+
+
+
+      }
+      else {
+
+        $('#listContentID').remove();
+        strHtml = "No Data";
+        $("#errorList").css({
+          'font-weight': 'bold',
+          'font-size': '2em',
+          'margin-left': '50%'
+
+        }).html(strHtml);
+        $("#errorViz").css({
+          'font-weight': 'bold',
+          'font-size': '2em',
+          'margin-left': '50%'
+
+        }).html(strHtml);
+
+        $('#lineChart').html('');
+        $('#pieChart').html('');
+        $('#barChart').html('');
+
+      }
+
+
+    }
+
+
+    var visualization = function() {
+      console.log(IMDB_Rating);
+      $('#lineChart').highcharts({
+        title: {
+          text: 'IMDB Rating VS Gross Collection ' + sYear,
+          x: -20 //center
+        },
+        subtitle: {
+          text: 'Source: crowdflower.com',
+          x: -20
+        },
+        xAxis: {
+          title: {
+            text: 'IMDB Rating'
+          },
+          categories: IMDB_Rating
+        },
+        yAxis: {
+          title: {
+            text: 'Gross'
+          },
+          plotLines: [{
+            value: 0,
+            width: 1,
+            color: '#808080'
+          }]
+        },
+        tooltip: {
+          valueSuffix: ' ',
+        },
+        legend: {
+          layout: 'vertical',
+          align: 'right',
+          verticalAlign: 'middle',
+          borderWidth: 0
+        },
+        series: [{
+          name: 'Gross',
+          data: lineChartData,
+        }]
+      });
+
+
+      $('#pieChart').highcharts({
+        chart: {
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          type: 'pie'
+        },
+        title: {
+          text: 'Gross ' + sYear
+        },
+        tooltip: {
+          pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: false
+            },
+            showInLegend: true
+          }
+        },
+        series: [{
+          name: 'Collection',
+          colorByPoint: true,
+          data: pieChartData
+        }]
+      });
+
+      $('#barChart').highcharts({
+        chart: {
+          type: 'column'
+        },
+        title: {
+          text: 'IMDB Rating vs Rotten Tomato Rating' + sYear
+        },
+        subtitle: {
+          text: 'Source: crowdflower.com'
+        },
+        xAxis: {
+          categories: Title,
+          crosshair: true
+        },
+        yAxis: {
+          min: 0,
+          title: {
+            text: 'Rating'
+          }
+        },
+        tooltip: {
+          headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+          pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+            '<td style="padding:0"><b>{point.y:.1f} </b></td></tr>',
+          footerFormat: '</table>',
+          shared: true,
+          useHTML: true
+        },
+        plotOptions: {
+          column: {
+            pointPadding: 0.2,
+            borderWidth: 0
+          }
+        },
+        series: [{
+          name: 'IMDB',
+          data: IMDB_Rating
+
+        }, {
+          name: 'Rotten Tomato',
+          data: Rt_score
+
+        }]
+      });
+
+    }
+  </script>
+</body>
+
+</html>
